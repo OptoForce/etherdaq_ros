@@ -1,5 +1,5 @@
 # etherdaq_ros
-The driver has been tested under Ubuntu 14.04 and ROS indigo.
+The driver has been tested under Ubuntu 20.04 and ROS Noetic.
 To build the sources you should use catkin
 
 
@@ -7,16 +7,20 @@ Compiling
 ---------
 Assuming you are in home directory, and you have root priviliges first you should do the following steps
 
-In a console, type:
+```bash
+mkdir opto_ws
+cd opto_ws
+mkdir src
 
- * mkdir opto_ws
- * cd opto_ws
- * mkdir src
- * cd src
- * catkin_init_workspace
- * git clone https://github.com/OptoForce/etherdaq_ros.git
- * cd ..
- * catkin_make
+source /opt/ros/noetic/setup.bash
+catkin_make
+
+cd src
+git clone https://github.com/OptoForce/etherdaq_ros.git
+cd ..
+
+catkin_make
+```
 
 After successful compiling, you will have two executable files and one library file.
 
@@ -27,13 +31,39 @@ Usage - Demo
 First, should check if the EtherDAQ is working by OptoForce Ethernet Discovery Tool. The tool will 
 show you the address of your EtherDAQ device(s) connected to your network.
 
-To be able to run the ROS demo, you have to modify the following file: 
-opto_ws/src/opto_ros_driver/ethernet_daq_driver/launch/demo.launch
-Replace 192.168.100.12 in the following line args="--address 192.168.100.12 --rate 1000 --filter 4"
-to your EtherDAQ's address provided by the Ethernet Discovery Tool.
+The default address is `192.168.1.1` you can try access the Ethernet DAQ realtime stream at [http://192.168.1.1](http://192.168.1.1) or just `ping 192.168.1.1`. If the device does not reply, try to unplug it from the power supply and re-plug it.
 
-To run the demo be sure that you are in the home/opto_ws directory!
-Type roslaunch optoforce_etherdaq_driver demo.launch
+Once you have the correct IP
+
+```bash
+gedit opto_ws/src/opto_ros_driver/ethernet_daq_driver/launch/demo.launch
+```
+
+and set you IP
+
+```xml
+<launch>
+	<node
+		pkg="optoforce_etherdaq_driver"
+		type="etherdaq_node"
+		name="etherdaq_node"
+		args="--address <YOUR IP> --rate 1000 --filter 4"
+	/>
+	<node
+		pkg="optoforce_etherdaq_driver"
+		type="etherdaq_subscriber"
+		name="etherdaq_subscriber"
+		output="screen"
+	/>
+</launch>
+```
+
+Fnally, you an run the demo
+
+```bash
+source devel/setup.bash
+roslaunch optoforce_etherdaq_driver demo.launch
+```
 
 You should see something similar on your console:
 
@@ -63,18 +93,18 @@ Usage - Real world
 
 
 The ROS driver is a simple node providing Force/Torque informations on a ROS topic.
-After compiling you can find the node in the /opto_ws/devel/lib/optoforce_etherdaq_driver.
+After compiling you can find the node in the `/opto_ws/devel/lib/optoforce_etherdaq_driver`.
 
 
 
 Parameters of the node
 ----------------------
-* --help Shows the help screen and exits.
-* --rate (default: 100) (in Hz) The publish speed of the F/T informations. It also sets the EtherDAQ speed to the given value. 
-* --filter (default: 4) Set the filtering (Valid parameters: 0 = No filter; 1 = 500 Hz; 2 = 150 Hz; 3 = 50 Hz; 4 = 15 Hz; 5 = 5 Hz; 6 = 1.5 Hz)
-* --address The IP address of the EtherDAQ device.
-* --wrench  publish older Wrench message type instead of WrenchStamped
-* --frame_id arg (default: "base_link") Frame ID for Wrench data
+* `--help` Shows the help screen and exits.
+* `--rate` (default: 100) (in Hz) The publish speed of the F/T informations. It also sets the EtherDAQ speed to the given value. 
+* `--filter` (default: 4) Set the filtering (Valid parameters: 0 = No filter; 1 = 500 Hz; 2 = 150 Hz; 3 = 50 Hz; 4 = 15 Hz; 5 = 5 Hz; 6 = 1.5 Hz)
+* `--address` The IP address of the EtherDAQ device.
+* `--wrench`  publish older Wrench message type instead of WrenchStamped
+* `--frame_id` arg (default: "base_link") Frame ID for Wrench data
 
 
 Example: 
@@ -84,13 +114,13 @@ Example:
 
 Topics of the node
 ------------------
-The node subscribes to /etdaq_zero where you can zero the force/torque readings at the current loading level.
+The node subscribes to `/etdaq_zero` where you can zero the force/torque readings at the current loading level.
  * The parameter is std_msgs::Bool, if it's true, then the node zeroes otherwise it unzeroes.
 
 The node publishes to the following topics:
-*   /diagnostics where you can check the status of the EtherDAQ (speed, last F/T values, system status, address, etc)
-*   /etherdaq_data the topic where F/T values are published either in Wrench or in WrenchStamped format if the force and torque units are given 
-*   /etherdaq_data_raw topic where F/T values are published either in Wrench or in WrenchStamped format if the force and torque units are not given
+*   `/diagnostics` where you can check the status of the EtherDAQ (speed, last F/T values, system status, address, etc)
+*   `/etherdaq_data` the topic where F/T values are published either in Wrench or in WrenchStamped format if the force and torque units are given 
+*   `/etherdaq_data_raw` topic where F/T values are published either in Wrench or in WrenchStamped format if the force and torque units are not given
 
 
 
